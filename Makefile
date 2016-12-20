@@ -1,12 +1,4 @@
-CC := gcc -std=c99
-CFLAGS := -Wall -Wextra
-DEBUG := -g
-OPT :=
-LD := gcc
-LFLAGS :=
-INSTALL := cp -p
-UNINSTALL := rm -f
-AR := ar crs
+include Makefile.in
 
 LIB := libfft_util.a
 HEADER := fft_util.h
@@ -15,6 +7,10 @@ PREFIX := /usr/local
 
 $(LIB): $(OBJS) $(HDRS)
 	$(AR) $@ $^
+
+.PHONY: demo
+demo: $(LIB)
+	$(MAKE) -C demo
 
 install: $(LIB)
 	$(INSTALL) src/$(HEADER) $(PREFIX)/include/

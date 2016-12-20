@@ -2,7 +2,7 @@
 #define INTERNAL_H_INCLUDED
 
 
-#include "fft_util.h"
+#include "fftutil.h"
 #include "config.h"
 
 #include <stdlib.h>

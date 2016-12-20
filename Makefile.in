@@ -1,0 +1,9 @@
+CC := gcc -std=c99
+CFLAGS := -Wall -Wextra
+DEBUG := -g
+OPT :=
+LD := gcc
+LFLAGS :=
+INSTALL := cp -p
+UNINSTALL := rm -f
+AR := ar crs
