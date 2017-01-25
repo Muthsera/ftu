@@ -3,7 +3,7 @@
 
 
 /* define macro with project name */
-#define NAME fftutil
+#define NAME ftu
 
 
 /* set default precision */

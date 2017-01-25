@@ -1,7 +1,20 @@
-#include "internal.h"
+#include "../internal.h"
 
-void X(expandR2C_1d)(TYPE *A, size_t Nx)
+
+TYPE* X(expandR2c_1d)(const TYPE *in, size_t Nx)
 {
+	if ( in == NULL || Nx < 2 ) return NULL;
+
+	TYPE *out = malloc( Nx * sizeof(TYPE) );
+	X(expandR2CExt_1d)(out,in,Nx);
+	return out;
+}
+
+
+void X(expandR2CIn_1d)(TYPE *A, size_t Nx)
+{
+	if ( A == NULL || Nx < 2 ) return;
+
 	size_t Nx2 = Nx/2;
 	if ( Nx%2 == 0 ) {
 		for (size_t i=1; i<Nx2; i++) {
@@ -15,8 +28,11 @@ void X(expandR2C_1d)(TYPE *A, size_t Nx)
 	}
 }
 
-void X(expandR2C_ext1d)(TYPE *restrict out, const TYPE *restrict in, size_t Nx)
+
+void X(expandR2CExt_1d)(TYPE *restrict out, const TYPE *restrict in, size_t Nx)
 {
+	if ( out == NULL || in == NULL || Nx < 2 ) return;
+
 	size_t Nx2 = Nx/2;
 	if ( Nx%2 == 0 ) {
 		out[0] = in[0];

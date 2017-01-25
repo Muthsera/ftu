@@ -1,7 +1,20 @@
-#include "internal.h"
+#include "../internal.h"
 
-void X(ishift_1d)(TYPE *A, size_t Nx)
+
+TYPE* X(ishift_1d)(const TYPE *in, size_t Nx)
 {
+	if ( in == NULL || Nx < 2 ) return NULL;
+
+	TYPE *out = malloc( Nx * sizeof(TYPE) );
+	X(ishiftExt_1d)(out,in,Nx);
+	return out;
+}
+
+
+void X(ishiftIn_1d)(TYPE *A, size_t Nx)
+{
+	if ( A == NULL || Nx < 2 ) return;
+
 	size_t Nx2 = Nx/2;
 	TYPE temp;
 	if ( Nx%2 == 0 ) {
@@ -21,8 +34,11 @@ void X(ishift_1d)(TYPE *A, size_t Nx)
 	}
 }
 
-void X(ishift_ext1d)(TYPE *restrict out, const TYPE *restrict in, size_t Nx)
+
+void X(ishiftExt_1d)(TYPE *restrict out, const TYPE *restrict in, size_t Nx)
 {
+	if ( out == NULL || in == NULL || Nx < 2 ) return;
+
 	size_t Nx2 = Nx/2;
 	if ( Nx%2 == 0 ) {
 		memcpy( out, in+Nx2, Nx2*sizeof(TYPE) );

@@ -2,12 +2,14 @@
 #define INTERNAL_H_INCLUDED
 
 
-#include "fftutil.h"
+#include "ftu.h"
 #include "config.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <complex.h>
 #include <float.h>
+
 
 #define HIDDEN_CONCAT(x,y) x ## y
 #define CONCAT(x,y) HIDDEN_CONCAT(x,y)
