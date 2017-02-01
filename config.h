@@ -12,10 +12,5 @@
 #define DOUBLE
 #endif
 
-/* set default type: complex or real */
-#if !defined( NO_COMPLEX ) && !defined( COMPLEX )
-#define NO_COMPLEX
-#endif
-
 
 #endif /* CONFIG_H_INCLUDED */
