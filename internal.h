@@ -15,49 +15,48 @@
 #define CONCAT(x,y) HIDDEN_CONCAT(x,y)
 
 #if defined( DOUBLE )
-	typedef double PREC;
-	#if defined( NO_COMPLEX )
-		typedef double TYPE;
-		#define PREFIX CONCAT(NAME,_)
-		#define XM(func) func
-	#elif defined( COMPLEX )
-		typedef double _Complex TYPE;
-		#define PREFIX CONCAT(NAME,c_)
-		#define XM(func) c ## func
-	#endif
+	#define PREFIX CONCAT(NAME,_)
+	#define CPREFIX CONCAT(NAME,c_)
+	#define XM(func) f ## func
+	#define XMC(func) c ## func
 	#define X(name) CONCAT(PREFIX,name)
+	#define XC(name) CONCAT(CPREFIX,name)
 	#define FORMAT lf
 	#define FLOATING_MAX DBL_MAX
-#elif defined( LONG ) || defined( LONG_DOUBLE )
-	typedef long double PREC;
-	#if defined( NO_COMPLEX )
-		typedef long double TYPE;
-		#define PREFIX CONCAT(NAME,l_)
-		#define XM(func) f ## func ## l
-	#elif defined( COMPLEX )
-		typedef long double _Complex TYPE;
-		#define PREFIX CONCAT(NAME,lc_)
-		#define XM(func) c ## func ## l
+	typedef double PREC;
+	typedef double REAL;
+	#if ( __STDC_VERSION__ >= 199901L )
+	typedef double _Complex COMPL;
 	#endif
+#elif defined( LONG ) || defined( LONG_DOUBLE )
+	#define PREFIX CONCAT(NAME,l_)
+	#define CPREFIX CONCAT(NAME,lc_)
+	#define XM(func) f ## func ## l
+	#define XMC(func) c ## func ## l
 	#define X(name) CONCAT(PREFIX,name)
+	#define XC(name) CONCAT(CPREFIX,name)
 	#define FORMAT Lf
 	#define FLOATING_MAX LDBL_MAX
-#elif defined( SINGLE ) || defined( FLOAT )
-	typedef float PREC;
-	#if defined( NO_COMPLEX )
-		typedef float TYPE;
-		#define PREFIX CONCAT(NAME,f_)
-		#define XM(func) f ## func ## f
-	#elif defined( COMPLEX )
-		typedef float _Complex TYPE;
-		#define PREFIX CONCAT(NAME,fc_)
-		#define XM(func) c ## func ## f
+	typedef long double PREC;
+	typedef long double REAL;
+	#if ( __STDC_VERSION__ >= 199901L )
+	typedef long double _Complex COMPL;
 	#endif
+#elif defined( SINGLE ) || defined( FLOAT )
+	#define PREFIX CONCAT(NAME,f_)
+	#define CPREFIX CONCAT(NAME,fc_)
+	#define XM(func) f ## func ## f
+	#define XMC(func) c ## func ## f
 	#define X(name) CONCAT(PREFIX,name)
+	#define XC(name) CONCAT(CPREFIX,name)
 	#define FORMAT f
 	#define FLOATING_MAX FLOAT_MAX
+	typedef float PREC;
+	typedef float REAL;
+	#if ( __STDC_VERSION__ >= 199901L )
+	typedef float _Complex COMPL;
+	#endif
 #endif
-
 
 
 #endif /* INTERNAL_H_INCLUDED */

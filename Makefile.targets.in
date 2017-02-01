@@ -1,0 +1,241 @@
+
+float%: TYPESUFFIX := $(FLOAT_SUFFIX)
+double%: TYPESUFFIX := $(DOUBLE_SUFFIX)
+long%: TYPESUFFIX := $(LONG_SUFFIX)
+%static: LIBEXT := $(STATIC_EXT)
+%shared: LIBEXT := $(SHARED_EXT)
+
+
+.SECONDEXPANSION:
+
+
+#################################################
+# building libs
+#################################################
+
+SRCS := $(wildcard $(SRCDIR)/*.c)
+SRCNAMES := $(notdir $(SRCS))
+OBJNAMES := $(SRCNAMES:.c=.o)
+DEPNAMES := $(SRCNAMES:.c=.d)
+DEPS := $(addprefix $(DEPDIR)/,$(DEPNAMES) )
+
+FLOAT_TARGETS := $(filter float%,$(TARGETS) )
+DOUBLE_TARGETS := $(filter double%,$(TARGETS) )
+LONG_TARGETS := $(filter long%,$(TARGETS) )
+STATIC_TARGETS := $(filter %static,$(TARGETS) )
+SHARED_TARGETS := $(filter %shared,$(TARGETS) )
+TARGETDIRS := $(addprefix $(BUILDDIR)/,$(TARGETS) )
+DEPTARGETDIRS := $(addprefix $(DEPDIR)/,$(TARGETS) )
+DEPFILES := \
+	$(foreach DEPTAR,$(DEPTARGETDIRS), $(addprefix $(DEPTAR)/,$(DEPNAMES) ) )
+MAKEDIRS := $(BUILDDIR) $(DEPDIR) $(TARGETDIRS) $(DEPTARGETDIRS)
+
+
+.PHONY: all float double long static shared float-all double-all long-all \
+	static-all shared-all $(TARGETS)
+all: $(TARGETS)
+float: float-$(DEFAULT_LIB)
+double: double-$(DEFAULT_LIB)
+long: long-$(DEFAULT_LIB)
+static: $(DEFAULT_TYPE)-static
+shared: $(DEFAULT_TYPE)-shared
+float-all: $(FLOAT_TARGETS)
+double-all: $(DOUBLE_TARGETS)
+long-all: $(LONG_TARGETS)
+static-all: $(STATIC_TARGETS)
+shared-all: $(SHARED_TARGETS)
+
+$(FLOAT_TARGETS): CFLAGS += -DFLOAT
+$(FLOAT_TARGETS): TARGETDIR := float
+$(DOUBLE_TARGETS): CFLAGS += -DDOUBLE
+$(DOUBLE_TARGETS): TARGETDIR := double
+$(LONG_TARGETS): CFLAGS += -DLONG
+$(LONG_TARGETS): TARGETDIR := long
+
+$(STATIC_TARGETS): TARGETDIR := $(TARGETDIR)-static
+$(STATIC_TARGETS): CREATELIB = $(AR) $(LIBFILE) $(OBJNAMES)
+
+$(SHARED_TARGETS): CFLAGS += -fpic
+$(SHARED_TARGETS): TARGETDIR := $(TARGETDIR)-shared
+$(SHARED_TARGETS): CREATELIB = $(LD) $(LINKOPTIONS) -o $(LIBFILE).$(VERSION) \
+	$(OBJNAMES) $(LDFLAGS)
+
+$(TARGETS): $$(addprefix $(BUILDDIR)/$$(TARGETDIR)/,$(OBJNAMES) ) $$(LIBFILE)
+
+$(LIBFILES):
+	@cd $(BUILDDIR)/$(TARGETDIR) && $(CREATELIB)
+	@echo "cd $(BUILDDIR)/$(TARGETDIR) && $(CREATELIB)"
+
+$(BUILDDIR)/%.o: $(SRCDIR)/$$(*F).c | $(DEPDIR)/$$(*D) $(BUILDDIR)/$$(*D)
+	@$(CC) $(COPTIONS) -MM -MT $@ -MP -MF $(DEPDIR)/$*.d $<
+	$(CC) $(COPTIONS) -c -o $@ $<
+
+-include $(DEPFILES)
+
+
+$(MAKEDIRS):
+	@$(MKDIR) $@
+
+
+#################################################
+# clean build and dep directories
+#################################################
+
+CLEAN_TARGETS := $(addprefix clean-,$(TARGETS) )
+CLEAN_FLOAT := $(addprefix clean-,$(FLOAT_TARGETS) )
+CLEAN_DOUBLE := $(addprefix clean-,$(DOUBLE_TARGETS) )
+CLEAN_LONG := $(addprefix clean-,$(LONG_TARGETS) )
+CLEAN_STATIC := $(addprefix clean-,$(STATIC_TARGETS) )
+CLEAN_SHARED := $(addprefix clean-,$(SHARED_TARGETS) )
+
+.PHONY: clean clean-all clean-float clean-double clean-long \
+	clean-static clean-shared $(CLEAN_TARGETS)
+.PHONY: clean-float-all clean-double-all clean-long-all clean-static-all \
+	clean-shared-all
+clean clean-all: $(CLEAN_TARGETS)
+clean-float-all: $(CLEAN_FLOAT)
+clean-double-all: $(CLEAN_DOUBLE)
+clean-long-all: $(CLEAN_LONG)
+clean-static-all: $(CLEAN_STATIC)
+clean-shared-all: $(CLEAN_SHARED)
+clean-float: clean-float-$(DEFAULT_LIB)
+clean-double: clean-double-$(DEFAULT_LIB)
+clean-long: clean-long-$(DEFAULT_LIB)
+clean-static: clean-$(DEFAULT_TYPE)-static
+clean-shared: clean-$(DEFAULT_TYPE)-shared
+
+$(CLEAN_TARGETS):
+	@if [ -d $(DEPDIR)/$(patsubst clean-%,%,$@) ]; then \
+		echo "$(RMDIR) $(DEPDIR)/$(patsubst clean-%,%,$@)"; \
+		$(RMDIR) $(DEPDIR)/$(patsubst clean-%,%,$@); \
+		if [ -z "$$(ls -A $(DEPDIR))" ]; then \
+			echo "$(RMDIR) $(DEPDIR)"; \
+			$(RMDIR) $(DEPDIR); \
+		fi \
+	fi
+	@if [ -d $(BUILDDIR)/$(patsubst clean-%,%,$@) ]; then \
+		echo "$(RMDIR) $(BUILDDIR)/$(patsubst clean-%,%,$@)"; \
+		$(RMDIR) $(BUILDDIR)/$(patsubst clean-%,%,$@); \
+		if [ -z "$$(ls -A $(BUILDDIR))" ]; then \
+			echo "$(RMDIR) $(BUILDDIR)"; \
+			$(RMDIR) $(BUILDDIR); \
+		fi \
+	fi
+
+
+#################################################
+# install library
+#################################################
+
+INSTALL_TARGETS := $(addprefix install-,$(TARGETS) )
+INSTALL_FLOATS := $(addprefix install-,$(FLOAT_TARGETS) )
+INSTALL_DOUBLE := $(addprefix install-,$(DOUBLE_TARGETS) )
+INSTALL_LONG := $(addprefix install-,$(LONG_TARGETS) )
+INSTALL_STATIC := $(addprefix install-,$(STATIC_TARGETS) )
+INSTALL_SHARED := $(addprefix install-,$(SHARED_TARGETS) )
+
+.PHONY: install install-all install-float install-double install-long \
+	install-static install-shared $(INSTALL_TARGETS)
+.PHONY: install-float-all install-double-all install-long-all \
+	install-static-all install-shared-all
+install install-all: $(INSTALL_TARGETS)
+install-float: install-float-$(DEFAULT_LIB)
+install-double: install-double-$(DEFAULT_LIB)
+install-long: install-long-$(DEFAULT_LIB)
+install-static: install-$(DEFAULT_TYPE)-static
+install-shared: install-$(DEFAULT_TYPE)-shared
+install-float-all: $(INSTALL_FLOAT)
+install-double-all: $(INSTALL_DOUBLE)
+install-long-all: $(INSTALL_LONG)
+install-static-all: $(INSTALL_STATIC)
+install-shared-all: $(INSTALL_SHARED)
+
+$(INSTALL_TARGETS): | $(INSTALL_LIBDIR) $(INSTALL_HEADERDIR)
+	@if [ -d $(BUILDDIR)/$(patsubst install-%,%,$@) ]; then \
+		if [ -n "$(filter %static,$@)" ]; then \
+			echo $(INSTALL) \
+			"$$(ls -A $(BUILDDIR)/$(patsubst install-%,%,$@)/$(LIBFILE))" \
+			$(INSTALL_LIBDIR) \
+			; \
+			$(INSTALL) \
+			"$$(ls -A $(BUILDDIR)/$(patsubst install-%,%,$@)/$(LIBFILE))" \
+			$(INSTALL_LIBDIR) \
+			; \
+		elif [ -n "$(filter %shared,$@)" ]; then \
+			echo $(INSTALL) \
+			"$$(ls -A $(BUILDDIR)/$(patsubst install-%,%,$@)/$(LIBFILE).$(VERSION))" \
+			$(INSTALL_LIBDIR) \
+			; \
+			$(INSTALL) \
+			"$$(ls -A $(BUILDDIR)/$(patsubst install-%,%,$@)/$(LIBFILE).$(VERSION))" \
+			$(INSTALL_LIBDIR) \
+			; \
+			echo "cd $(INSTALL_LIBDIR) &&"\
+			"ln -fs $(LIBFILE).$(VERSION) $(LIBFILE).$(MAJOR_VERSION)" \
+			; \
+			cd $(INSTALL_LIBDIR) && ln -fs $(LIBFILE).$(MAJOR_VERSION) $(LIBFILE); \
+			\
+			echo "cd $(INSTALL_LIBDIR) &&"\
+			"ln -fs $(LIBFILE).$(MAJOR_VERSION) $(LIBFILE)" \
+			; \
+			cd $(INSTALL_LIBDIR) && ln -fs $(LIBFILE).$(MAJOR_VERSION) $(LIBFILE); \
+			\
+			echo $(LDCONFIG); \
+			$(LDCONFIG); \
+		fi \
+	fi
+	@if [ ! -f $(INSTALL_HEADERDIR)/$(HEADER) ]; then \
+		echo $(INSTALL) $(HEADER) $(INSTALL_HEADERDIR) ;\
+		$(INSTALL) $(HEADER) $(INSTALL_HEADERDIR) ;\
+	fi
+
+
+$(INSTALL_LIBDIR) $(INSTALL_HEADERDIR):
+	@$(MKDIR) $@
+
+
+#################################################
+# uninstall libraries
+#################################################
+
+UNINSTALL_TARGETS := $(addprefix uninstall-,$(TARGETS) )
+UNINSTALL-FLOAT := $(addprefix uninstall-,$(FLOAT_TARGETS) )
+UNINSTALL_DOUBLE := $(addprefix uninstall-,$(DOUBLE_TARGETS) )
+UNINSTALL_LONG := $(addprefix uninstall-,$(LONG_TARGETS) )
+UNINSTALL_STATIC := $(addprefix uninstall-,$(STATIC_TARGETS) )
+UNINSTALL_SHARED := $(addprefix uninstall-,$(SHARED_TARGETS) )
+
+.PHONY: uninstall uninstall-all uninstall-float uninstall-double \
+	uninstall-long uninstall-static uninstall-shared $(UNINSTALL_TARGETS)
+.PHONY: uninstall-float-all uninstall-double-all uninstall-long-all \
+	uninstall-static-all uninstall-shared-all
+uninstall uninstall-all: $(UNINSTALL_TARGETS)
+uninstall-float: uninstall-float-$(DEFAULT_LIB)
+uninstall-double: uninstall-double-$(DEFAULT_LIB)
+uninstall-long: uninstall-long-$(DEFAULT_LIB)
+uninstall-static: uninstall-$(DEFAULT_TYPE)-static
+uninstall-shared: uninstall-$(DEFAULT_TYPE)-shared
+uninstall-float-all: $(UNINSTALL_FLOAT)
+uninstall-double-all: $(UNINSTALL_DOUBLE)
+uninstall-long-all: $(UNINSTALL_LONG)
+uninstall-static-all: $(UNINSTALL_STATIC)
+uninstall-shared-all: $(UNINSTALL_SHARED)
+
+$(UNINSTALL_TARGETS):
+	@if [ -f $(INSTALL_LIBDIR)/$(LIBFILE) ]; then \
+		echo $(UNINSTALL) $(INSTALL_LIBDIR)/$(LIBFILE) ;\
+		$(UNINSTALL) $(INSTALL_LIBDIR)/$(LIBFILE) ;\
+		if [ -n "$(filter %shared,$@)" ]; then \
+			echo $(UNINSTALL) $(INSTALL_LIBDIR)/$(LIBFILE).$(VERSION) ;\
+			$(UNINSTALL) $(INSTALL_LIBDIR)/$(LIBFILE).$(VERSION) ;\
+			\
+			echo $(UNINSTALL) $(INSTALL_LIBDIR)/$(LIBFILE).$(MAJOR_VERSION) ;\
+			$(UNINSTALL) $(INSTALL_LIBDIR)/$(LIBFILE).$(MAJOR_VERSION) ;\
+		fi \
+	fi
+	@if [ -z "$(ls $(INSTALL_LIBDIR)/libftu*)" ]; then \
+		if [ -f $(INSTALL_HEADERDIR)/$(HEADER) ]; then \
+			echo $(UNINSTALL) $(INSTALL_HEADERDIR)/$(HEADER) ;\
+			$(UNINSTALL) $(INSTALL_HEADERDIR)/$(HEADER) ;\
+		fi \
+	fi

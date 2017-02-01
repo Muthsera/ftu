@@ -29,4 +29,4 @@ default: $(DEFAULT_TYPE)-$(DEFAULT_LIB)
 
 
 include Makefile.in
-
+include Makefile.targets.in
