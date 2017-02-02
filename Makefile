@@ -10,7 +10,7 @@ TARGETS := float-static float-shared double-static double-shared \
 		  long-static long-shared
 
 DEFAULT_TYPE := double
-DEFAULT_LIB := static
+DEFAULT_LIB := shared
 
 # if one suffix or extension is empty,
 # use empty string ""
